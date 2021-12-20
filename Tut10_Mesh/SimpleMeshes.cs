@@ -136,7 +136,34 @@ namespace FuseeApp
 
         public static Mesh CreateCylinder(float radius, float height, int segments)
         {
-            return CreateConeFrustum(radius, radius, height, segments);
+            float3[] verts = new float3[ segments + 1];
+            float3[] norms = new float3[ segments + 1];
+            ushort[] tris  = new ushort[ segments * 3];
+            float alpha = (2 * M.Pi) / segments;
+
+            verts[0] = new float3(radius, 0, 0); // 'start vertex'
+            verts[segments] = new float3(0, 0, 0); // center vertex
+            norms[0] = new float3(0, 1, 0); // 'start point normal'
+            norms[segments] = new float3(0, 1, 0); // center point normal
+            for (int i = 1; i < segments; i++) // everything in between
+            {
+            verts[i] = new float3(radius * M.Cos(i * alpha), 0, radius * M.Sin(i * alpha));
+            norms[i] = new float3(0, 1, 0);
+            tris[i * 3 + 0] = (ushort) (i - 1);
+            tris[i * 3 + 1] = (ushort) i;
+            tris[i * 3 + 2] = (ushort) segments;
+            }
+            // Mesh together the last triangle seperately in order to not duplicate the first vertex
+            tris[0] = (ushort) (segments - 1);
+            tris[1] = (ushort) 0;
+            tris[2] = (ushort) segments;
+
+            return new Mesh 
+            {
+                Vertices = verts, // = 'corner points'
+                Normals = norms, // = 'direction' of the vertices --> by extension face direction of the triangle plane
+                Triangles = tris
+            };
         }
 
         public static Mesh CreateCone(float radius, float height, int segments)

@@ -20,16 +20,28 @@ namespace FuseeApp
     {
         private SceneContainer _scene;
         private SceneRendererForward _sceneRenderer;
-        private Transform _baseTransform;
+        private Transform[] _baseTransform = new Transform[3];
 
         SceneContainer CreateScene()
         {
             // Initialize transform components that need to be changed inside "RenderAFrame"
-            _baseTransform = new Transform
+            _baseTransform[0] = new Transform
             {
                 Rotation = new float3(0, 0, 0),
                 Scale = new float3(1, 1, 1),
                 Translation = new float3(0, 0, 0)
+            };
+            _baseTransform[1] = new Transform
+            {
+                Rotation = new float3(0, 0, 0),
+                Scale = new float3(1, 1, 1),
+                Translation = new float3(0, 5, 0)
+            };
+            _baseTransform[2] = new Transform
+            {
+                Rotation = new float3(0, 0, 0),
+                Scale = new float3(1, 1, 1),
+                Translation = new float3(0, 10, 0)
             };
 
             // Setup the scene graph
@@ -42,13 +54,41 @@ namespace FuseeApp
                         Components = new List<SceneComponent>
                         {
                             // TRANSFORM COMPONENT
-                            _baseTransform,
+                            _baseTransform[0],
 
                             // SHADER EFFECT COMPONENT
                             SimpleMeshes.MakeMaterial((float4) ColorUint.LightGrey),
 
                             // MESH COMPONENT
-                            SimpleMeshes.CreateCuboid(new float3(10, 10, 10))
+                            SimpleMeshes.CreateCylinder(5 , 10, 16)
+                        }
+                    },
+                    new SceneNode
+                    {
+                        Components = new List<SceneComponent>
+                        {
+                            // TRANSFORM COMPONENT
+                            _baseTransform[1],
+
+                            // SHADER EFFECT COMPONENT
+                            SimpleMeshes.MakeMaterial((float4) ColorUint.Gray),
+
+                            // MESH COMPONENT
+                            SimpleMeshes.CreateCylinder(4 , 10, 8)
+                        }
+                    },
+                    new SceneNode
+                    {
+                        Components = new List<SceneComponent>
+                        {
+                            // TRANSFORM COMPONENT
+                            _baseTransform[2],
+
+                            // SHADER EFFECT COMPONENT
+                            SimpleMeshes.MakeMaterial((float4) ColorUint.DarkGray),
+
+                            // MESH COMPONENT
+                            SimpleMeshes.CreateCylinder(3 , 10, 5)
                         }
                     },
                 }
@@ -63,6 +103,8 @@ namespace FuseeApp
 
             _scene = CreateScene();
 
+            RC.SetRenderState(RenderState.CullMode, (uint) Cull.None, true);
+
             // Create a scene renderer holding the scene above
             _sceneRenderer = new SceneRendererForward(_scene);
         }
@@ -72,7 +114,10 @@ namespace FuseeApp
         {
             SetProjectionAndViewport();
 
-            _baseTransform.Rotation = new float3(0, M.MinAngle(TimeSinceStart), 0);
+            for (int i = 0; i < 3; i++)
+            {
+                _baseTransform[i].Rotation = new float3(0, M.MinAngle(TimeSinceStart), 0);
+            }
 
             // Clear the backbuffer
             RC.Clear(ClearFlags.Color | ClearFlags.Depth);
@@ -100,6 +145,7 @@ namespace FuseeApp
             // Back clipping happens at 2000 (Anything further away from the camera than 2000 world units gets clipped, polygons will be cut)
             var projection = float4x4.CreatePerspectiveFieldOfView(M.PiOver4, aspectRatio, 1, 20000);
             RC.Projection = projection;
-        }        
+        }  
+              
     }
 }
