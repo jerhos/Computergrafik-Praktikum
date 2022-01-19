@@ -21,6 +21,7 @@ namespace FuseeApp
         private SceneContainer _scene;
         private SceneRendererForward _sceneRenderer;
         private Transform[] _baseTransform = new Transform[3];
+        private float _camAngle;
 
         SceneContainer CreateScene()
         {
@@ -35,13 +36,13 @@ namespace FuseeApp
             {
                 Rotation = new float3(0, 0, 0),
                 Scale = new float3(1, 1, 1),
-                Translation = new float3(0, 5, 0)
+                Translation = new float3(10, -3, 0)
             };
             _baseTransform[2] = new Transform
             {
                 Rotation = new float3(0, 0, 0),
                 Scale = new float3(1, 1, 1),
-                Translation = new float3(0, 10, 0)
+                Translation = new float3(-9, 4, 0)
             };
 
             // Setup the scene graph
@@ -57,10 +58,10 @@ namespace FuseeApp
                             _baseTransform[0],
 
                             // SHADER EFFECT COMPONENT
-                            SimpleMeshes.MakeMaterial((float4) ColorUint.LightGrey),
+                            SimpleMeshes.MakeMaterial((float4) ColorUint.Red),
 
                             // MESH COMPONENT
-                            SimpleMeshes.CreateCylinder(5 , 10, 16)
+                            SimpleMeshes.CreateCylinder(5, 10, 16)
                         }
                     },
                     new SceneNode
@@ -71,10 +72,10 @@ namespace FuseeApp
                             _baseTransform[1],
 
                             // SHADER EFFECT COMPONENT
-                            SimpleMeshes.MakeMaterial((float4) ColorUint.Gray),
+                            SimpleMeshes.MakeMaterial((float4) ColorUint.Orange),
 
                             // MESH COMPONENT
-                            SimpleMeshes.CreateCylinder(4 , 10, 8)
+                            SimpleMeshes.CreateCylinder(4, 7, 8)
                         }
                     },
                     new SceneNode
@@ -85,10 +86,10 @@ namespace FuseeApp
                             _baseTransform[2],
 
                             // SHADER EFFECT COMPONENT
-                            SimpleMeshes.MakeMaterial((float4) ColorUint.DarkGray),
+                            SimpleMeshes.MakeMaterial((float4) ColorUint.Yellow),
 
                             // MESH COMPONENT
-                            SimpleMeshes.CreateCylinder(3 , 10, 5)
+                            SimpleMeshes.CreateCylinder(3, 3.5f, 5)
                         }
                     },
                 }
@@ -99,11 +100,12 @@ namespace FuseeApp
         public override void Init()
         {
             // Set the clear color for the backbuffer to white (100% intensity in all color channels R, G, B, A).
-            RC.ClearColor = new float4(0.8f, 0.9f, 0.7f, 1);
+            RC.ClearColor = (float4) ColorUint.White;
 
             _scene = CreateScene();
 
-            RC.SetRenderState(RenderState.CullMode, (uint) Cull.None, true);
+            //RC.SetRenderState(RenderState.CullMode, (uint) Cull.None, true);
+            //RC.SetRenderState(RenderState.FillMode, (uint) FillMode.Wireframe, true);
 
             // Create a scene renderer holding the scene above
             _sceneRenderer = new SceneRendererForward(_scene);
@@ -122,8 +124,10 @@ namespace FuseeApp
             // Clear the backbuffer
             RC.Clear(ClearFlags.Color | ClearFlags.Depth);
 
+            _camAngle += 45 * Time.DeltaTime * M.Pi * M.DegreesToRadians(45);
+
             // Setup the camera 
-            RC.View = float4x4.CreateTranslation(0, 0, 40) * float4x4.CreateRotationX(-(float) Math.Atan(15.0 / 40.0));
+            RC.View = float4x4.CreateTranslation(0, 0, 40) * float4x4.CreateRotationX(-(float) Math.Atan(15.0 / 40.0)) * float4x4.CreateRotationZXY(new float3(M.DegreesToRadians(_camAngle),M.DegreesToRadians(_camAngle),M.DegreesToRadians(_camAngle)));
 
             // Render the scene on the current render context
             _sceneRenderer.Render(RC);

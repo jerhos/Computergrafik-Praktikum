@@ -136,32 +136,83 @@ namespace FuseeApp
 
         public static Mesh CreateCylinder(float radius, float height, int segments)
         {
-            float3[] verts = new float3[ segments + 1];
-            float3[] norms = new float3[ segments + 1];
-            ushort[] tris  = new ushort[ segments * 3];
+            float3[] verts = new float3[segments * 4 + 2];
+            float3[] norms = new float3[segments * 4 + 2];
+            ushort[] tris  = new ushort[segments * 4 * 3];
             float alpha = (2 * M.Pi) / segments;
+            
+            // CENTER VERTICES
+                // Top
+                verts[4 * segments]     = new float3(0, height / 2, 0);     
+                norms[4 * segments]     = float3.UnitY;                     
+                // Bottom
+                verts[4 * segments + 1] = new float3(0, -height / 2, 0);
+                norms[4 * segments + 1] = -float3.UnitY;                 
 
-            verts[0] = new float3(radius, 0, 0); // 'start vertex'
-            verts[segments] = new float3(0, 0, 0); // center vertex
-            norms[0] = new float3(0, 1, 0); // 'start point normal'
-            norms[segments] = new float3(0, 1, 0); // center point normal
-            for (int i = 1; i < segments; i++) // everything in between
+            for (int i = 1; i < segments; i++) 
             {
-            verts[i] = new float3(radius * M.Cos(i * alpha), 0, radius * M.Sin(i * alpha));
-            norms[i] = new float3(0, 1, 0);
-            tris[i * 3 + 0] = (ushort) (i - 1);
-            tris[i * 3 + 1] = (ushort) i;
-            tris[i * 3 + 2] = (ushort) segments;
+            // VERTICES AND NORMALS
+                // Top
+                verts[4 * i + 0] = new float3(radius * M.Cos(i * alpha),  height / 2, radius * M.Sin(i * alpha));
+                norms[4 * i + 0] = float3.UnitY;
+                // Side 1
+                verts[4 * i + 1] = new float3(radius * M.Cos(i * alpha),  height / 2, radius * M.Sin(i * alpha));
+                norms[4 * i + 1] = new float3(M.Cos(i * alpha), 0, M.Sin(i * alpha));
+                // Side 2
+                verts[4 * i + 2] = new float3(radius * M.Cos(i * alpha), -height / 2, radius * M.Sin(i * alpha));
+                norms[4 * i + 2] = new float3(M.Cos(i * alpha), 0, M.Sin(i * alpha));
+                // Bottom
+                verts[4 * i + 3] = new float3(radius * M.Cos(i * alpha), -height / 2, radius * M.Sin(i * alpha));
+                norms[4 * i + 3] = -float3.UnitY;
+            // TRIANGLES
+                // Top
+                tris[12 * (i-1) + 0 ] = (ushort) (4 * segments + 0);
+                tris[12 * (i-1) + 1 ] = (ushort) (4 *  (i-1)   + 0);
+                tris[12 * (i-1) + 2 ] = (ushort) (4 *    i     + 0);
+                // Side 
+                tris[12 * (i-1) + 3 ] = (ushort) (4 *  (i-1)   + 2);
+                tris[12 * (i-1) + 4 ] = (ushort) (4 *    i     + 2);
+                tris[12 * (i-1) + 5 ] = (ushort) (4 *    i     + 1);
+                // Side 2
+                tris[12 * (i-1) + 6 ] = (ushort) (4 *  (i-1)   + 2);
+                tris[12 * (i-1) + 7 ] = (ushort) (4 *    i     + 1);
+                tris[12 * (i-1) + 8 ] = (ushort) (4 *  (i-1)   + 1);
+                // Botto
+                tris[12 * (i-1) + 9 ] = (ushort) (4 * segments + 1);
+                tris[12 * (i-1) + 10] = (ushort) (4 *    i     + 3);
+                tris[12 * (i-1) + 11] = (ushort) (4 *  (i-1)   + 3);
             }
-            // Mesh together the last triangle seperately in order to not duplicate the first vertex
-            tris[0] = (ushort) (segments - 1);
-            tris[1] = (ushort) 0;
-            tris[2] = (ushort) segments;
+
+            // Mesh together the last segment seperately in order to not duplicate the first vertices
+                verts[0] = new float3(radius * M.Cos(0 * alpha),  height / 2, radius * M.Sin(0 * alpha));
+                verts[1] = new float3(radius * M.Cos(0 * alpha),  height / 2, radius * M.Sin(0 * alpha));
+                verts[2] = new float3(radius * M.Cos(0 * alpha), -height / 2, radius * M.Sin(0 * alpha));
+                verts[3] = new float3(radius * M.Cos(0 * alpha), -height / 2, radius * M.Sin(0 * alpha));
+                norms[0] = float3.UnitY;
+                norms[1] = new float3(M.Cos(segments * alpha), 0, M.Sin(segments * alpha));
+                norms[2] = new float3(M.Cos(segments * alpha), 0, M.Sin(segments * alpha));
+                norms[3] = -float3.UnitY;
+                // Top
+                tris[12 * (segments - 1) + 0]  = (ushort) (4 *   segments   + 0);
+                tris[12 * (segments - 1) + 1]  = (ushort) (4 * (segments-1) + 0);
+                tris[12 * (segments - 1) + 2]  = (ushort) (4 *      0       + 0);
+                // Side 1 
+                tris[12 * (segments - 1) + 3]  = (ushort) (4 * (segments-1) + 2);
+                tris[12 * (segments - 1) + 4]  = (ushort) (4 *      0       + 2);
+                tris[12 * (segments - 1) + 5]  = (ushort) (4 *      0       + 1);
+                // Side 2 
+                tris[12 * (segments - 1) + 6]  = (ushort) (4 * (segments-1) + 2);
+                tris[12 * (segments - 1) + 7]  = (ushort) (4 *      0       + 1);
+                tris[12 * (segments - 1) + 8]  = (ushort) (4 * (segments-1) + 1);
+                // Bottom
+                tris[12 * (segments - 1) + 9]  = (ushort) (4 *  segments    + 1);
+                tris[12 * (segments - 1) + 10] = (ushort) (4 *      0       + 3);
+                tris[12 * (segments - 1) + 11] = (ushort) (4 * (segments-1) + 3);
 
             return new Mesh 
             {
                 Vertices = verts, // = 'corner points'
-                Normals = norms, // = 'direction' of the vertices --> by extension face direction of the triangle plane
+                Normals = norms, // = 'direction' of the vertices
                 Triangles = tris
             };
         }
